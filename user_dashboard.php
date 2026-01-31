@@ -10,7 +10,6 @@ if (!isset($_SESSION["user_id"])) {
 $userId = $_SESSION["user_id"];
 $message = "";
 
-// Handle plan selection
 if (isset($_POST["select_plan"])) {
     $plan = $_POST["plan"];
     $price = $_POST["price"];
@@ -40,7 +39,7 @@ if (isset($_POST["select_plan"])) {
             <li><a href="user_dashboard.php">Dashboard</a></li>
             <li><a href="pricing.php">Pricing</a></li>
             <li><a href="courses.php">Courses</a></li>
-            <li><a href="logout.php">Logout</a></li>
+            <li><a href="login.php">Logout</a></li>
         </ul>
     </div>
 </nav>

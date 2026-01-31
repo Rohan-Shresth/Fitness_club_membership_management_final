@@ -33,7 +33,7 @@ require "db.php";
             </div>
         </a>
 
-        <a href="plans.php" class="card-link">
+        <a href="pricing.php" class="card-link">
             <div class="dashboard-card">
                 <h3>Active Plans</h3>
             </div>

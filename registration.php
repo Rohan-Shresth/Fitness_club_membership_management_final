@@ -2,53 +2,60 @@
 session_start();          
 require_once "db.php";
 
+// Generate CSRF token if it doesn't exist
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (isset($_POST['register'])) {
-
-    $name = $_POST['full_name'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role = $_POST['role'];
-    $specialty = $_POST['specialty'] ?? null;
-
-    try {
-        if ($role === "customer") {
-            $stmt = $pdo->prepare(
-                "INSERT INTO customers (full_name, email, password)
-                 VALUES (?, ?, ?)"
-            );
-            $stmt->execute([$name, $email, $password]);
-
-        } elseif ($role === "trainer") {
-            $stmt = $pdo->prepare(
-                "INSERT INTO trainers (full_name, email, password, specialty)
-                 VALUES (?, ?, ?, ?)"
-            );
-            $stmt->execute([$name, $email, $password, $specialty]);
-
-        } elseif ($role === "owner") {
-            $stmt = $pdo->prepare(
-                "INSERT INTO owners (full_name, email, password)
-                 VALUES (?, ?, ?)"
-            );
-            $stmt->execute([$name, $email, $password]);
+    // Validate CSRF token first
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo "<script>alert('Invalid request. Please try again.');</script>";
+    } else {
+        $name = $_POST['full_name'];
+        $email = $_POST['email'];
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $role = $_POST['role'];
+        $specialty = $_POST['specialty'] ?? null;
+        
+        try {
+            if ($role === "customer") {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO customers (full_name, email, password)
+                     VALUES (?, ?, ?)"
+                );
+                $stmt->execute([$name, $email, $password]);
+            } elseif ($role === "trainer") {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO trainers (full_name, email, password, specialty)
+                     VALUES (?, ?, ?, ?)"
+                );
+                $stmt->execute([$name, $email, $password, $specialty]);
+            } elseif ($role === "owner") {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO owners (full_name, email, password)
+                     VALUES (?, ?, ?)"
+                );
+                $stmt->execute([$name, $email, $password]);
+            }
+            
+            $_SESSION["user_name"] = $name;
+            $_SESSION["user_email"] = $email;
+            $_SESSION["user_role"] = $role;
+            
+            // Regenerate CSRF token after successful registration
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            
+            echo "<script>
+                    alert('Registration successful');
+                    window.location.href = 'login.php';
+                  </script>";
+        } catch (PDOException $e) {
+            echo "<script>alert('Error: Email already exists');</script>";
         }
-
-        $_SESSION["user_name"] = $name;
-        $_SESSION["user_email"] = $email;
-        $_SESSION["user_role"] = $role;
-
-        echo "<script>
-                alert('Registration successful');
-                window.location.href = 'login.php';
-              </script>";
-
-    } catch (PDOException $e) {
-        echo "<script>alert('Error: Email already exists');</script>";
     }
 }
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,9 +63,7 @@ if (isset($_POST['register'])) {
     <title>User Registration</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <nav class="navbar">
     <div class="navdiv">
         <div class="logo"><a href="index.php">Gym</a></div>
@@ -73,25 +78,24 @@ if (isset($_POST['register'])) {
 </nav>
 <section class="page-section">
     <h1>User Registration</h1>
-
     <form class="form-box" method="POST">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+        
         <input type="text" name="full_name" placeholder="Full Name" required>
         <input type="email" name="email" placeholder="Email" required>
         <input type="password" name="password" placeholder="Password" required>
-
+        
         <select name="role" required>
             <option value="">Register As</option>
             <option value="customer">Customer</option>
             <option value="trainer">Trainer</option>
         </select>
-
+        
         <input type="text" name="specialty" placeholder="Trainer Specialty (optional)">
-
+        
         <button type="submit" name="register">Register</button>
         <a href="login.php">Already have an account</a>
     </form>
 </section>
-
-
 </body>
 </html>
