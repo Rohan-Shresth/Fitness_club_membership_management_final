@@ -40,6 +40,8 @@ if (isset($_POST["select_plan"])) {
             <li><a href="pricing.php">Pricing</a></li>
             <li><a href="courses.php">Courses</a></li>
             <li><a href="login.php">Logout</a></li>
+            <li><a href="attendance.php">Attendance</a></li>
+            <li><a href="workout_plans.php">Workout Plan</a></li>
         </ul>
     </div>
 </nav>
